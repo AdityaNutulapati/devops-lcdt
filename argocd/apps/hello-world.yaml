@@ -23,3 +23,11 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+  
+  # Show all child resources (Pods, ReplicaSets, etc)
+  info:
+    - name: 'Resource Tracking'
+      value: 'Enabled'
