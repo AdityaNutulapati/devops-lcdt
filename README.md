@@ -286,77 +286,7 @@ aws dynamodb delete-table --table-name lcdt-terraform-lock --region ap-south-2 -
 
 - **Architecture**: See `docs/architecture.md` for detailed system design
 - **Runbook**: See `docs/runbook.md` for operational procedures
-- **Port Forwarding**: See `scripts/PORT-FORWARD-GUIDE.md` for access guide
-
----
-
-##  Design Decisions
-
-### Why t3.micro?
-
-- Free tier eligible
-- Sufficient for demo/learning
-- Production would use t3.medium or larger
-
-### Why EmptyDir instead of EBS?
-
-- No persistent storage costs
-- Simpler setup
-- Acceptable for demo (data loss on pod restart)
-- Production would use EBS with backups
-
-### Why Alertmanager Disabled?
-
-- Saves resources (~50-100 MB)
-- Alerts still evaluated by Prometheus
-- Can be enabled when needed
-- Production would enable with notifications
-
-### Why Single NAT Gateway?
-
-- Cost optimization (~$32/month vs $64)
-- Single point of failure acceptable for demo
-- Production would use NAT per AZ
-
----
-
-##  Troubleshooting
-
-### Pods Not Starting
-
-```bash
-kubectl get pods -A
-kubectl describe pod <pod-name> -n <namespace>
-kubectl logs <pod-name> -n <namespace>
-```
-
-### Port Forward Fails
-
-```bash
-# Kill existing port forwards
-pkill -f "kubectl port-forward"
-
-# Restart
-./scripts/port-forward-all.sh
-```
-
-### ArgoCD Not Syncing
-
-```bash
-kubectl get application -n argocd
-kubectl describe application <app-name> -n argocd
-```
-
-### Terraform State Locked
-
-```bash
-# Check DynamoDB for lock
-aws dynamodb scan --table-name lcdt-terraform-lock --profile lcdt
-
-# Force unlock (use carefully)
-terraform force-unlock <lock-id>
-```
-
+- 
 ---
 
 ##  Assignment Requirements
@@ -386,12 +316,15 @@ ArgoCD:
 
 Grafana:
 <img width="2559" height="1309" alt="image" src="https://github.com/user-attachments/assets/2df2cb80-1b51-47b4-bb44-8dc28b44bcf5" />
+<img width="1806" height="1237" alt="image" src="https://github.com/user-attachments/assets/86c72788-c051-4be4-a13f-3ca2619df808" />
+
 
 Prometheus:
 <img width="2547" height="820" alt="image" src="https://github.com/user-attachments/assets/9d77f087-a3d6-4255-9c28-f366c6495527" />
 
 Loki:
 <img width="2558" height="1283" alt="image" src="https://github.com/user-attachments/assets/4a368ce6-6aad-49e7-9ea3-58ce183442be" />
+<img width="2562" height="1398" alt="image" src="https://github.com/user-attachments/assets/56f4b72c-d8c6-4596-bdca-a953c4e16c33" />
 
 ---
 
