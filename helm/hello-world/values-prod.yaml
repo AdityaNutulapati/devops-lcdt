@@ -4,7 +4,7 @@
 
 image:
   repository: 515230700333.dkr.ecr.ap-south-2.amazonaws.com/lcdt/hello-world
-  tag: "v1.0.0"
+  tag: "v1.0.1"
 
 serviceAccount:
   annotations:
