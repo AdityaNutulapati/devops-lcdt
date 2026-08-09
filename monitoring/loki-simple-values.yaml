@@ -1,0 +1,89 @@
+# Simplified Loki - Modern Chart with volume_enabled
+# Uses SingleBinary mode with proper emptyDir mounts
+
+deploymentMode: SingleBinary
+
+loki:
+  auth_enabled: false
+  
+  commonConfig:
+    replication_factor: 1
+    path_prefix: /var/loki
+  
+  # Enable volume for log volume API
+  limits_config:
+    volume_enabled: true
+    retention_period: 168h
+    max_query_series: 10000
+  
+  # Storage configuration
+  storage:
+    type: filesystem
+  
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+# SingleBinary configuration
+singleBinary:
+  replicas: 1
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+  
+  # Disable persistence - use emptyDir (free, temporary)
+  persistence:
+    enabled: false
+  
+  # Add writable emptyDir volume for /var/loki
+  extraVolumes:
+    - name: loki-data
+      emptyDir: {}
+  
+  extraVolumeMounts:
+    - name: loki-data
+      mountPath: /var/loki
+
+# Disable all distributed components
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+
+# Monitoring components
+monitoring:
+  selfMonitoring:
+    enabled: false
+    grafanaAgent:
+      installOperator: false
+  
+  lokiCanary:
+    enabled: false
+
+# Test component
+test:
+  enabled: false
+
+# Gateway
+gateway:
+  enabled: false
+
+# Caching - disable to save resources
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false

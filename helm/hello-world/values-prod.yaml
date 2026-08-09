@@ -1,0 +1,11 @@
+################################################################################
+# Production overrides
+################################################################################
+
+image:
+  repository: 515230700333.dkr.ecr.ap-south-2.amazonaws.com/lcdt/hello-world
+  tag: "v1.0.0"
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::515230700333:role/hello-world-irsa

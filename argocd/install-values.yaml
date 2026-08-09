@@ -1,0 +1,102 @@
+################################################################################
+# Global
+################################################################################
+
+global:
+  logging:
+    level: info
+
+################################################################################
+# Server
+################################################################################
+
+server:
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 192Mi
+
+  service:
+    type: ClusterIP
+
+  ingress:
+    enabled: false
+
+  extraArgs:
+    - --insecure
+
+################################################################################
+# Repo Server
+################################################################################
+
+repoServer:
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 192Mi
+
+################################################################################
+# Application Controller
+################################################################################
+
+controller:
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+################################################################################
+# Redis (HA disabled for cost — single instance)
+################################################################################
+
+redis:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi
+
+################################################################################
+# Configs
+################################################################################
+
+configs:
+  params:
+    server.insecure: true
+    application.namespaces: "default,monitoring"
+
+  cm:
+    timeout.reconciliation: 180s
+    resource.exclusions: |
+      - apiGroups:
+          - "velero.io"
+        kinds:
+          - "Backup"
+        clusters:
+          - "*"
+
+  rbac:
+    policy.default: role:readonly
+    policy.csv: |
+      p, role:admin, applications, *, */*, allow
+      p, role:admin, clusters, get, *, allow
+      p, role:admin, repositories, *, *, allow
+      p, role:admin, projects, *, *, allow
+      g, admin, role:admin
