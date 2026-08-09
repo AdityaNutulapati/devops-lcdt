@@ -55,6 +55,7 @@ func main() {
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
+	log.Printf("Request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
 
 	// Send response
 	w.Header().Set("Content-Type", "text/plain")
