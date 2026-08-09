@@ -1,0 +1,9 @@
+.git
+.github
+.gitignore
+*.md
+terraform/
+helm/
+monitoring/
+docs/
+.dockerignore

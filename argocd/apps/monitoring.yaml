@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: lcdt
+
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 88.2.0
+    chart: kube-prometheus-stack
+    helm:
+      valuesObject:
+        prometheus:
+          prometheusSpec:
+            retention: 7d
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 300m
+                memory: 512Mi
+            storageSpec: {}
+
+        grafana:
+          enabled: true
+          adminPassword: "changeme-use-secret-in-production"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 384Mi
+          persistence:
+            enabled: false
+
+        alertmanager:
+          enabled: false
+
+        nodeExporter:
+          enabled: false
+
+        prometheusOperator:
+          admissionWebhooks:
+            enabled: false
+          tls:
+            enabled: false
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,248 @@
+################################################################################
+# kube-prometheus-stack Helm chart custom values
+#
+# Install with:
+#   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#   helm repo update
+#   helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+#     --namespace monitoring --create-namespace \
+#     -f monitoring/kube-prometheus-stack-values.yaml
+################################################################################
+
+################################################################################
+# Prometheus
+################################################################################
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    retentionSize: "5GB"
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 300m
+        memory: 512Mi
+
+    storageSpec: {}
+
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+    additionalScrapeConfigs: []
+
+################################################################################
+# Grafana
+################################################################################
+
+grafana:
+  enabled: true
+
+  adminPassword: "changeme-use-secret-in-production"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 384Mi
+
+  persistence:
+    enabled: false
+
+  # Add Loki as a datasource
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki:3100
+      isDefault: false
+      editable: true
+
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: "custom"
+          orgId: 1
+          folder: "Application"
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/custom
+
+  dashboards:
+    custom:
+      hello-world-dashboard:
+        json: |
+          {
+            "annotations": { "list": [] },
+            "editable": true,
+            "fiscalYearStartMonth": 0,
+            "graphTooltip": 1,
+            "id": null,
+            "links": [],
+            "panels": [
+              {
+                "title": "Request Rate (req/s)",
+                "type": "timeseries",
+                "datasource": { "type": "prometheus", "uid": "prometheus" },
+                "targets": [
+                  {
+                    "expr": "rate(http_requests_total[5m])",
+                    "legendFormat": "{{method}} {{path}} {{status}}"
+                  }
+                ],
+                "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+              },
+              {
+                "title": "Request Duration (p50/p90/p99)",
+                "type": "timeseries",
+                "datasource": { "type": "prometheus", "uid": "prometheus" },
+                "targets": [
+                  {
+                    "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))",
+                    "legendFormat": "p50"
+                  },
+                  {
+                    "expr": "histogram_quantile(0.90, rate(http_request_duration_seconds_bucket[5m]))",
+                    "legendFormat": "p90"
+                  },
+                  {
+                    "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))",
+                    "legendFormat": "p99"
+                  }
+                ],
+                "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
+              },
+              {
+                "title": "Error Rate (%)",
+                "type": "stat",
+                "datasource": { "type": "prometheus", "uid": "prometheus" },
+                "targets": [
+                  {
+                    "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) * 100",
+                    "legendFormat": "Error %"
+                  }
+                ],
+                "gridPos": { "h": 4, "w": 6, "x": 0, "y": 8 }
+              },
+              {
+                "title": "Total Requests",
+                "type": "stat",
+                "datasource": { "type": "prometheus", "uid": "prometheus" },
+                "targets": [
+                  {
+                    "expr": "sum(http_requests_total)",
+                    "legendFormat": "Total"
+                  }
+                ],
+                "gridPos": { "h": 4, "w": 6, "x": 6, "y": 8 }
+              },
+              {
+                "title": "Pod CPU Usage",
+                "type": "timeseries",
+                "datasource": { "type": "prometheus", "uid": "prometheus" },
+                "targets": [
+                  {
+                    "expr": "rate(container_cpu_usage_seconds_total{namespace=\"default\", container=\"hello-world\"}[5m])",
+                    "legendFormat": "{{pod}}"
+                  }
+                ],
+                "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 }
+              },
+              {
+                "title": "Pod Memory Usage",
+                "type": "timeseries",
+                "datasource": { "type": "prometheus", "uid": "prometheus" },
+                "targets": [
+                  {
+                    "expr": "container_memory_working_set_bytes{namespace=\"default\", container=\"hello-world\"}",
+                    "legendFormat": "{{pod}}"
+                  }
+                ],
+                "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 }
+              }
+            ],
+            "schemaVersion": 39,
+            "tags": ["hello-world", "application"],
+            "templating": { "list": [] },
+            "time": { "from": "now-1h", "to": "now" },
+            "title": "Hello World Application",
+            "uid": "hello-world-app"
+          }
+
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+
+################################################################################
+# Alertmanager
+################################################################################
+
+alertmanager:
+  enabled: true
+
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 50m
+        memory: 64Mi
+
+################################################################################
+# Node Exporter
+################################################################################
+
+nodeExporter:
+  enabled: true
+
+################################################################################
+# Kube State Metrics
+################################################################################
+
+kubeStateMetrics:
+  enabled: true
+
+################################################################################
+# Default Rules
+################################################################################
+
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: false
+    configReloaders: true
+    general: true
+    k8s: true
+    kubeApiserverAvailability: true
+    kubeApiserverBurnrate: true
+    kubeApiserverHistogram: true
+    kubeApiserverSlos: true
+    kubeControllerManager: true
+    kubelet: true
+    kubeProxy: true
+    kubePrometheusGeneral: true
+    kubePrometheusNodeRecording: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: true
+    kubernetesSystem: true
+    kubeSchedulerAlerting: true
+    kubeSchedulerRecording: true
+    kubeStateMetrics: true
+    network: true
+    node: true
+    nodeExporterAlerting: true
+    nodeExporterRecording: true
+    prometheus: true
+    prometheusOperator: true

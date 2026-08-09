@@ -1,0 +1,27 @@
+# Simple values for hello-world app
+
+replicaCount: 2
+
+image:
+  repository: hello-world
+  pullPolicy: IfNotPresent
+  tag: "v1.0.0"
+
+serviceAccount:
+  create: true
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 32Mi
+  limits:
+    cpu: 200m
+    memory: 64Mi
+
+serviceMonitor:
+  enabled: true
