@@ -1,4 +1,4 @@
-# DevOps Assignment - E2E Microservice Deployment
+<img width="827" height="615" alt="image" src="https://github.com/user-attachments/assets/a3982c32-59ef-432f-b903-c1bcb4be7257" /># DevOps Assignment - E2E Microservice Deployment
 
 Production-ready Kubernetes deployment on AWS EKS with complete Infrastructure as Code, GitOps, and observability.
 
@@ -90,7 +90,7 @@ kubectl get pods -A
 |---------|---------|-----|
 | **Grafana** | `kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80` | http://localhost:3000 |
 | **Prometheus** | `kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-prometheus 9090:9090` | http://localhost:9090 |
-| **ArgoCD** | `kubectl port-forward -n argocd svc/argocd-server 8080:443` | http://localhost:8080 |
+| **ArgoCD** | `kubectl port-forward -n argocd svc/argocd-server 8080:80` | http://localhost:8080 |
 | **Hello-World** | `kubectl port-forward -n default svc/hello-world 8081:80` | http://localhost:8081 |
 | **Loki** | `kubectl port-forward -n monitoring svc/loki 3100:3100` | http://localhost:3100 |
 
@@ -381,6 +381,17 @@ This is an assignment project. For questions or improvements, please reach out.
 
 This project is for educational purposes.
 ## Working screenshots
+AWS Infra:
+<img width="2555" height="1395" alt="image" src="https://github.com/user-attachments/assets/116b1262-76d2-42f5-b400-b1199fd49af2" />
+<img width="2566" height="1220" alt="image" src="https://github.com/user-attachments/assets/a097a883-e672-411d-86b8-41e94747ced2" />
+<img width="2558" height="624" alt="image" src="https://github.com/user-attachments/assets/2d8775b0-2d20-4ccb-a7ae-53e47b5ae1a5" />
+
+ArgoCD:
+<img width="2570" height="1388" alt="image" src="https://github.com/user-attachments/assets/c43bb14f-5229-4d6b-be3d-e24100f5f2b4" />
+
 Grafana:
 <img width="2559" height="1309" alt="image" src="https://github.com/user-attachments/assets/2df2cb80-1b51-47b4-bb44-8dc28b44bcf5" />
+
+Prometheus:
+<img width="2547" height="820" alt="image" src="https://github.com/user-attachments/assets/9d77f087-a3d6-4255-9c28-f366c6495527" />
 
