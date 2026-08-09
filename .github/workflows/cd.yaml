@@ -43,14 +43,11 @@ jobs:
 
       - name: Sync hello-world via ArgoCD
         run: |
-          IMAGE_TAG=${{ github.sha }}
-          kubectl patch application hello-world -n argocd --type merge \
-            -p "{\"spec\":{\"source\":{\"helm\":{\"parameters\":[{\"name\":\"image.tag\",\"value\":\"${IMAGE_TAG}\"}]}}}}"
           kubectl annotate application hello-world -n argocd argocd.argoproj.io/refresh=hard --overwrite
+          kubectl rollout restart deployment/hello-world -n default
 
       - name: Wait for rollout
         run: |
-          sleep 30
           kubectl rollout status deployment/hello-world \
             --namespace default --timeout=120s
 

@@ -4,6 +4,7 @@
 
 image:
   repository: 515230700333.dkr.ecr.ap-south-2.amazonaws.com/lcdt/hello-world
+  pullPolicy: Always
   tag: "latest"
 
 serviceAccount:
