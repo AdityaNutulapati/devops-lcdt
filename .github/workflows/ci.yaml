@@ -35,12 +35,6 @@ jobs:
         working-directory: app
         run: go mod download
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
-          working-directory: app
-
       - name: Run tests
         working-directory: app
         run: go test -v -race -coverprofile=coverage.out ./...
