@@ -380,3 +380,7 @@ This is an assignment project. For questions or improvements, please reach out.
 ##  License
 
 This project is for educational purposes.
+## Working screenshots
+Grafana:
+<img width="2559" height="1309" alt="image" src="https://github.com/user-attachments/assets/2df2cb80-1b51-47b4-bb44-8dc28b44bcf5" />
+
