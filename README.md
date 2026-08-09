@@ -1,4 +1,4 @@
-<img width="827" height="615" alt="image" src="https://github.com/user-attachments/assets/a3982c32-59ef-432f-b903-c1bcb4be7257" /># DevOps Assignment - E2E Microservice Deployment
+# DevOps Assignment - E2E Microservice Deployment
 
 Production-ready Kubernetes deployment on AWS EKS with complete Infrastructure as Code, GitOps, and observability.
 
