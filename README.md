@@ -359,7 +359,7 @@ terraform force-unlock <lock-id>
 
 ---
 
-##  Assignment Requirements Met
+##  Assignment Requirements
 
  **Reusable Infrastructure**: Terraform modules  
  **High Availability**: Multi-AZ, multi-replica, HPA  
@@ -368,6 +368,30 @@ terraform force-unlock <lock-id>
  **Documentation**: Architecture, runbook, README  
  **CI/CD**: GitHub Actions for automated deployment  
  **GitOps**: ArgoCD for continuous deployment  
+
+---
+
+## Working screenshots
+AWS Infra:
+<img width="2555" height="1395" alt="image" src="https://github.com/user-attachments/assets/116b1262-76d2-42f5-b400-b1199fd49af2" />
+<img width="2566" height="1220" alt="image" src="https://github.com/user-attachments/assets/a097a883-e672-411d-86b8-41e94747ced2" />
+<img width="2558" height="624" alt="image" src="https://github.com/user-attachments/assets/2d8775b0-2d20-4ccb-a7ae-53e47b5ae1a5" />
+
+GitHub Actions CI/CD:
+<img width="2556" height="813" alt="image" src="https://github.com/user-attachments/assets/48621678-124b-4084-a711-b9921a1b67a4" />
+
+
+ArgoCD:
+<img width="2570" height="1388" alt="image" src="https://github.com/user-attachments/assets/c43bb14f-5229-4d6b-be3d-e24100f5f2b4" />
+
+Grafana:
+<img width="2559" height="1309" alt="image" src="https://github.com/user-attachments/assets/2df2cb80-1b51-47b4-bb44-8dc28b44bcf5" />
+
+Prometheus:
+<img width="2547" height="820" alt="image" src="https://github.com/user-attachments/assets/9d77f087-a3d6-4255-9c28-f366c6495527" />
+
+Loki:
+<img width="2558" height="1283" alt="image" src="https://github.com/user-attachments/assets/4a368ce6-6aad-49e7-9ea3-58ce183442be" />
 
 ---
 
@@ -380,18 +404,3 @@ This is an assignment project. For questions or improvements, please reach out.
 ##  License
 
 This project is for educational purposes.
-## Working screenshots
-AWS Infra:
-<img width="2555" height="1395" alt="image" src="https://github.com/user-attachments/assets/116b1262-76d2-42f5-b400-b1199fd49af2" />
-<img width="2566" height="1220" alt="image" src="https://github.com/user-attachments/assets/a097a883-e672-411d-86b8-41e94747ced2" />
-<img width="2558" height="624" alt="image" src="https://github.com/user-attachments/assets/2d8775b0-2d20-4ccb-a7ae-53e47b5ae1a5" />
-
-ArgoCD:
-<img width="2570" height="1388" alt="image" src="https://github.com/user-attachments/assets/c43bb14f-5229-4d6b-be3d-e24100f5f2b4" />
-
-Grafana:
-<img width="2559" height="1309" alt="image" src="https://github.com/user-attachments/assets/2df2cb80-1b51-47b4-bb44-8dc28b44bcf5" />
-
-Prometheus:
-<img width="2547" height="820" alt="image" src="https://github.com/user-attachments/assets/9d77f087-a3d6-4255-9c28-f366c6495527" />
-
