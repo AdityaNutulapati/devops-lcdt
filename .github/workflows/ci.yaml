@@ -60,7 +60,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::515230700333:role/github-actions-lcdt
+          role-to-assume: arn:aws:iam::515230700333:role/lcdt-admin
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
