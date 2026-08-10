@@ -87,7 +87,7 @@ resource "aws_iam_role_policy_attachment" "ssm_managed" {
 resource "aws_iam_openid_connect_provider" "github_actions" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+  thumbprint_list = ["227203b5317f3818cab5b5ce596132bf36748c0e"]
 
   tags = merge(var.tags, {
     Name = "github-actions-oidc"
