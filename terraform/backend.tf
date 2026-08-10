@@ -1,17 +1,18 @@
 # S3 Remote Backend Configuration
 # State stored in S3 with DynamoDB locking
 #
-# NOTE: Backend configuration cannot use variables or data sources.
-# The bucket name includes the AWS account ID for uniqueness.
-# Update the bucket name to match your AWS account ID.
+# NOTE: Backend configuration uses partial configuration.
+# The bucket name (which includes AWS account ID) is specified in backend.hcl
+# This keeps sensitive/account-specific values out of version control.
+#
+# Usage:
+#   terraform init -backend-config=backend.hcl
 
 terraform {
   backend "s3" {
-    bucket         = "lcdt-terraform-state-515230700333"  # Update with your account ID
     key            = "eks/terraform.tfstate"
     region         = "ap-south-2"
     dynamodb_table = "lcdt-terraform-lock"
     encrypt        = true
-    profile        = "lcdt"
   }
 }

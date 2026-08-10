@@ -30,21 +30,29 @@ Production-ready Kubernetes deployment on AWS EKS with complete Infrastructure a
 - Terraform >= 1.0
 - Helm >= 3.0
 
-### 1. Deploy Infrastructure
+### 1. Configure Backend
 
 ```bash
 cd terraform
-terraform init
+cp terraform.tfvars.example terraform.tfvars
+cp backend.hcl.example backend.hcl
+# Edit both files and replace <AWS_ACCOUNT_ID> with your actual AWS account ID
+```
+
+### 2. Deploy Infrastructure
+
+```bash
+terraform init -backend-config=backend.hcl
 terraform apply
 ```
 
-### 2. Configure kubectl
+### 3. Configure kubectl
 
 ```bash
 aws eks update-kubeconfig --region ap-south-2 --name aditya-eks-cluster --profile lcdt
 ```
 
-### 3. Verify Cluster
+### 4. Verify Cluster
 
 ```bash
 kubectl get nodes

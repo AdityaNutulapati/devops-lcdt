@@ -1,0 +1,9 @@
+# Backend Configuration File
+# Copy this file to backend.hcl and update with your AWS account ID
+# cp backend.hcl.example backend.hcl
+#
+# Usage:
+#   terraform init -backend-config=backend.hcl
+
+bucket  = "lcdt-terraform-state-<AWS_ACCOUNT_ID>"
+profile = "lcdt"

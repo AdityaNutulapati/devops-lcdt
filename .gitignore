@@ -10,6 +10,7 @@ terraform/override.tf.json
 terraform/*_override.tf
 terraform/*_override.tf.json
 terraform/terraform.tfvars
+terraform/backend.hcl
 
 # Go
 app/hello-world
