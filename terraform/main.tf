@@ -12,10 +12,18 @@ provider "aws" {
 }
 
 ################################################################################
+# Data Sources
+################################################################################
+
+data "aws_caller_identity" "current" {}
+
+################################################################################
 # Local Values
 ################################################################################
 
 locals {
+  account_id = data.aws_caller_identity.current.account_id
+  
   common_tags = {
     Project     = var.project
     Environment = var.environment

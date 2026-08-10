@@ -296,7 +296,7 @@ terraform destroy
 ### Delete S3 Backend (Optional)
 
 ```bash
-aws s3 rb s3://lcdt-terraform-state-515230700333 --force --profile lcdt
+aws s3 rb s3://lcdt-terraform-state-<AWS_ACCOUNT_ID> --force --profile lcdt
 aws dynamodb delete-table --table-name lcdt-terraform-lock --region ap-south-2 --profile lcdt
 ```
 

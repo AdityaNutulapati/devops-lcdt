@@ -12,7 +12,7 @@ aws configure --profile lcdt-base
 Add to `~/.aws/config`:
 ```ini
 [profile lcdt]
-role_arn = arn:aws:iam::515230700333:role/lcdt-admin
+role_arn = arn:aws:iam::<AWS_ACCOUNT_ID>:role/lcdt-admin
 source_profile = lcdt-base
 region = ap-south-2
 output = json
@@ -198,7 +198,7 @@ kubectl get events --sort-by='.lastTimestamp'
 ```bash
 # Check ECR login
 aws ecr get-login-password --region ap-south-2 --profile lcdt | \
-  docker login --username AWS --password-stdin 515230700333.dkr.ecr.ap-south-2.amazonaws.com
+  docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.ap-south-2.amazonaws.com
 
 # Check image exists
 aws ecr describe-images --repository-name lcdt/hello-world --profile lcdt --region ap-south-2
@@ -228,6 +228,8 @@ kubectl get configmap aws-auth -n kube-system -o yaml
 
 # Verify IAM role trust policy
 aws iam get-role --role-name aditya-eks-cluster-github-actions --profile lcdt
+
+# Note: Replace <AWS_ACCOUNT_ID> with your actual AWS account ID in commands
 
 # Check CloudTrail for AssumeRoleWithWebIdentity events
 aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity --profile lcdt --region ap-south-2
@@ -265,6 +267,6 @@ aws ecr delete-repository --repository-name lcdt/hello-world \
   --region ap-south-2 --profile lcdt --force
 
 # 6. (Optional) Delete Terraform state resources
-aws s3 rb s3://lcdt-terraform-state-515230700333 --force --profile lcdt --region ap-south-2
+aws s3 rb s3://lcdt-terraform-state-<AWS_ACCOUNT_ID> --force --profile lcdt --region ap-south-2
 aws dynamodb delete-table --table-name lcdt-terraform-lock --profile lcdt --region ap-south-2
 ```

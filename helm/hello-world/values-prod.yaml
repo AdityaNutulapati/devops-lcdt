@@ -3,10 +3,10 @@
 ################################################################################
 
 image:
-  repository: 515230700333.dkr.ecr.ap-south-2.amazonaws.com/lcdt/hello-world
+  repository: <AWS_ACCOUNT_ID>.dkr.ecr.ap-south-2.amazonaws.com/lcdt/hello-world
   pullPolicy: Always
   tag: "latest"
 
 serviceAccount:
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::515230700333:role/hello-world-irsa
+    eks.amazonaws.com/role-arn: arn:aws:iam::<AWS_ACCOUNT_ID>:role/hello-world-irsa
