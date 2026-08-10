@@ -125,3 +125,29 @@
 - **Managed node group**: AWS handles node health checks and replacement (update_config.max_unavailable: 1)
 - **EKS managed add-ons**: CoreDNS, kube-proxy, vpc-cni managed by AWS
 - **Single NAT Gateway**: Cost optimization — production would use NAT per AZ for full HA
+
+---
+
+## Acknowledged Limitations
+
+This is a demo/learning environment with intentional cost optimizations and simplifications:
+
+### 1. **EKS API Endpoint Access (0.0.0.0/0)**
+- **Current State**: Public endpoint open to all IPs
+- **Reason**: GitHub Actions runners use dynamic IPs from multiple ranges globally
+- **Production Recommendation**: Use AWS PrivateLink VPC endpoints for private-only access, or deploy GitHub self-hosted runners within your VPC
+
+### 2. **Single NAT Gateway**
+- **Current State**: One NAT Gateway in ap-south-2a only
+- **Reason**: Cost optimization (~$32/month per NAT Gateway × 2 AZs = $64/month saved)
+- **Production Recommendation**: Deploy one NAT Gateway per AZ for true high availability
+
+### 3. **Security Group Egress (0.0.0.0/0)**
+- **Current State**: Both cluster and node security groups allow unrestricted egress
+- **Reason**: Simplifies connectivity for demo purposes; avoids debugging egress-related issues
+- **Production Recommendation**: Restrict egress to specific ports (443 for HTTPS, 53 for DNS) and known CIDR ranges
+
+### 4. **Alerting (Alertmanager Disabled)**
+- **Current State**: PrometheusRules defined but Alertmanager disabled; no alert receivers configured
+- **Reason**: Cost optimization and demo simplicity; alerts visible in Prometheus UI only
+- **Production Recommendation**: Enable Alertmanager with proper receivers (Slack, PagerDuty, email, webhooks)

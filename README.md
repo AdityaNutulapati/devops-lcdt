@@ -123,13 +123,6 @@ kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.pas
 - Custom application metrics dashboard
 - Log exploration via Loki datasource
 
-### Alerts
-
-- Custom PrometheusRule definitions in `monitoring/alerts/custom-alerts.yaml`
-- 12 alert rules covering application, deployment, and node health
-- **Alertmanager disabled** for cost optimization - alerts visible in Prometheus UI only
-- **Note**: No alert notifications configured (no receivers) - alerts fire but aren't sent anywhere
-
 ---
 
 ##  CI/CD Pipeline
@@ -204,6 +197,32 @@ devops-lcdt/
     ├── runbook.md
     └── TROUBLESHOOTING.md
 ```
+
+---
+
+##  Acknowledged Limitations
+
+This is a demo/learning environment with cost optimizations. Production deployments should address:
+
+### 1. **EKS API Endpoint Access**
+- **Current**: Open to all IPs (`0.0.0.0/0`)
+- **Why**: GitHub Actions runners use dynamic IPs from various ranges
+- **Production Fix**: Use AWS VPC endpoints for private-only access, or GitHub self-hosted runners in your VPC
+
+### 2. **Single NAT Gateway**
+- **Current**: One NAT Gateway in a single AZ
+- **Why**: Cost optimization (~$32/month per NAT Gateway)
+- **Production Fix**: Deploy NAT Gateway per AZ for high availability
+
+### 3. **Security Group Egress**
+- **Current**: Unrestricted egress (`0.0.0.0/0` on all protocols)
+- **Why**: Simplifies connectivity for demo purposes
+- **Production Fix**: Restrict egress to specific ports (443 for HTTPS, 53 for DNS) and destinations
+
+### 4. **Alerting**
+- **Current**: Alertmanager disabled, no alert notifications
+- **Why**: Cost optimization and demo simplicity
+- **Production Fix**: Enable Alertmanager with receivers (Slack, PagerDuty, email)
 
 ---
 
