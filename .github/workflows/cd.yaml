@@ -31,8 +31,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Update kubeconfig
@@ -41,24 +40,46 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --name ${{ env.CLUSTER_NAME }}
 
-      - name: Sync hello-world via ArgoCD
+      - name: Sync all ArgoCD applications
         run: |
+          echo "=== Triggering hard refresh for all apps ==="
+          kubectl annotate application monitoring -n argocd argocd.argoproj.io/refresh=hard --overwrite
           kubectl annotate application hello-world -n argocd argocd.argoproj.io/refresh=hard --overwrite
+          
+          echo "=== Waiting for ArgoCD sync ==="
+          sleep 10
+          
+          echo "=== Restarting hello-world deployment to pull latest image ==="
           kubectl rollout restart deployment/hello-world -n default
 
-      - name: Wait for rollout
+      - name: Wait for hello-world rollout
         run: |
           kubectl rollout status deployment/hello-world \
-            --namespace default --timeout=120s
+            --namespace default --timeout=180s
 
-      - name: Print status
+      - name: Verify monitoring stack
+        run: |
+          echo "=== Checking monitoring pods ==="
+          kubectl get pods -n monitoring -l app.kubernetes.io/name=prometheus
+          kubectl get pods -n monitoring -l app.kubernetes.io/name=grafana
+
+      - name: Print deployment status
         if: always()
         run: |
           echo "=== ArgoCD Applications ==="
-          kubectl get applications -n argocd
+          kubectl get applications -n argocd -o wide
           echo ""
-          echo "=== Pods ==="
+          echo "=== Hello-World Deployment ==="
+          kubectl get deployment hello-world -n default -o wide
           kubectl get pods -n default -l app.kubernetes.io/name=hello-world -o wide
+          echo ""
+          echo "=== New Resources (PDB, NetworkPolicy) ==="
+          kubectl get pdb -n default
+          kubectl get networkpolicy -n default
+          echo ""
+          echo "=== Monitoring Stack ==="
+          kubectl get pods -n monitoring -l app.kubernetes.io/part-of=kube-prometheus-stack
           echo ""
           echo "=== Services ==="
           kubectl get svc -n default -l app.kubernetes.io/name=hello-world
+          kubectl get svc -n monitoring -l app.kubernetes.io/name=grafana

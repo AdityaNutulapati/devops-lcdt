@@ -41,7 +41,10 @@ prometheus:
 grafana:
   enabled: true
 
-  adminPassword: "changeme-use-secret-in-production"
+  admin:
+    existingSecret: grafana-admin-credentials
+    userKey: admin-user
+    passwordKey: admin-password
 
   resources:
     requests:
@@ -52,7 +55,8 @@ grafana:
       memory: 384Mi
 
   persistence:
-    enabled: false
+    enabled: true
+    size: 1Gi
 
   # Add Loki as a datasource
   additionalDataSources:
@@ -187,16 +191,7 @@ grafana:
 ################################################################################
 
 alertmanager:
-  enabled: true
-
-  alertmanagerSpec:
-    resources:
-      requests:
-        cpu: 25m
-        memory: 32Mi
-      limits:
-        cpu: 50m
-        memory: 64Mi
+  enabled: false
 
 ################################################################################
 # Node Exporter

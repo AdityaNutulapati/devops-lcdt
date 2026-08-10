@@ -7,9 +7,9 @@ variable "aws_region" {
 }
 
 variable "aws_profile" {
-  description = "AWS CLI profile"
+  description = "AWS CLI profile (leave empty to use default credential chain)"
   type        = string
-  default     = "lcdt"
+  default     = ""
 }
 
 variable "project" {

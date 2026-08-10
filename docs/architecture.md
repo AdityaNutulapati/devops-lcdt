@@ -53,23 +53,23 @@
 - **NAT Gateway**: Single NAT GW in first public subnet provides outbound internet access for nodes
 - **Security Groups**: Least-privilege rules — cluster ↔ node communication only on required ports
 - **KMS Encryption**: Kubernetes secrets encrypted at rest using customer-managed KMS key with automatic rotation
-- **Cluster endpoint**: Private access enabled; public access restricted by CIDR allowlist
+- **Cluster endpoint**: Private access enabled; public access restricted by CIDR allowlist (configured in terraform.tfvars)
 - **IAM Roles**: Separate roles for cluster and nodes with minimum required AWS managed policies
 - **IRSA**: Pod-level IAM via OIDC — no static credentials mounted in pods
 
 ### Application Layer
-- **Distroless image**: No shell, no package manager, no OS utilities — minimal attack surface
-- **Non-root execution**: Container runs as UID 65534 (nobody)
-- **Read-only root filesystem**: No writes allowed to container filesystem
-- **Capabilities dropped**: All Linux capabilities dropped via securityContext
-- **Seccomp**: RuntimeDefault seccomp profile applied
-- **NetworkPolicy**: Ingress restricted to port 8080 only; egress unrestricted (for metrics, DNS)
+- **Minimal image**: Multi-stage build with alpine:3.20 — small attack surface
+- **Non-root execution**: Container runs as UID 65534 (nobody) via Dockerfile USER directive and podSecurityContext
+- **Read-only root filesystem**: Enforced via `readOnlyRootFilesystem: true` in container securityContext
+- **Capabilities dropped**: All Linux capabilities dropped via `capabilities.drop: [ALL]`
+- **Seccomp**: RuntimeDefault seccomp profile applied via podSecurityContext
+- **NetworkPolicy**: Ingress restricted to port 8080 only; egress limited to DNS (53) and HTTPS (443)
 - **Resource limits**: CPU and memory limits prevent resource exhaustion
 
 ### CI/CD Security
-- **OIDC authentication**: GitHub Actions uses OIDC federation — no long-lived AWS credentials stored as secrets
-- **Trivy scanning**: Container images scanned for CRITICAL and HIGH vulnerabilities; build fails on findings
-- **Lint**: golangci-lint static analysis catches bugs and security issues
+- **OIDC authentication**: GitHub Actions uses OIDC federation via `aws_iam_openid_connect_provider` — no long-lived AWS credentials
+- **Trivy scanning**: Container images scanned for CRITICAL and HIGH vulnerabilities; build fails on findings (`exit-code: 1`)
+- **Scoped trust**: OIDC trust policy restricted to `repo:AdityaNutulapati/devops-lcdt:*` — only this repo can assume the CI/CD role
 
 ## Monitoring Stack
 
@@ -80,6 +80,8 @@
 │  ┌─────────────┐   scrape    ┌───────────────┐   │
 │  │ Prometheus  │◄────────────│ ServiceMonitor │   │
 │  │             │             │ (hello-world)  │   │
+│  │             │◄────────────│ PrometheusRule │   │
+│  │             │             │ (custom-alerts)│   │
 │  └──────┬──────┘             └───────────────┘   │
 │         │                                         │
 │         │ datasource                              │
@@ -89,14 +91,12 @@
 │  │             │  ◄── Dashboard: Cluster Overview  │
 │  └─────────────┘                                  │
 │                                                   │
-│  ┌──────────────┐                                 │
-│  │ Alertmanager │  ◄── PrometheusRule             │
-│  │              │      (custom-alerts.yaml)       │
-│  └──────────────┘                                 │
-│                                                   │
 │  ┌──────────────────┐  ┌──────────────┐           │
 │  │ kube-state-metrics│  │ node-exporter│           │
 │  └──────────────────┘  └──────────────┘           │
+│                                                   │
+│  Note: Alertmanager disabled for cost optimization│
+│        Alerts visible in Prometheus UI only       │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -114,10 +114,10 @@
 
 ## High Availability Design
 
-- **Multi-AZ**: Pods spread across 2 AZs via `topologySpreadConstraints`
-- **Multiple replicas**: Minimum 2 replicas (1 per AZ)
-- **PodDisruptionBudget**: At least 1 pod always available during voluntary disruptions
-- **HPA**: Auto-scales from 2 to 6 replicas based on CPU utilization
-- **Rolling updates**: Zero-downtime deployments (maxUnavailable: 0, maxSurge: 1)
-- **Managed node group**: AWS handles node health checks and replacement
+- **Multi-AZ**: Pods spread across 2 AZs via `topologySpreadConstraints` (maxSkew: 1, ScheduleAnyway)
+- **Multiple replicas**: Minimum 2 replicas with HPA scaling to 6
+- **PodDisruptionBudget**: `minAvailable: 1` ensures at least 1 pod during voluntary disruptions (node drain, upgrades)
+- **HPA**: Auto-scales from 2 to 6 replicas based on 70% CPU utilization target
+- **Managed node group**: AWS handles node health checks and replacement (update_config.max_unavailable: 1)
 - **EKS managed add-ons**: CoreDNS, kube-proxy, vpc-cni managed by AWS
+- **Single NAT Gateway**: Cost optimization — production would use NAT per AZ for full HA

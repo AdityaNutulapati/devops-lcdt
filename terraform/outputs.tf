@@ -45,7 +45,12 @@ output "oidc_provider_arn" {
 
 # Kubeconfig Command
 
+output "github_actions_role_arn" {
+  description = "GitHub Actions CI/CD role ARN (set as AWS_ROLE_ARN secret)"
+  value       = module.iam.github_actions_role_arn
+}
+
 output "configure_kubectl" {
   description = "kubectl config command"
-  value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name} --profile ${var.aws_profile}"
+  value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }

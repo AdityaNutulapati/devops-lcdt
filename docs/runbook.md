@@ -30,8 +30,9 @@ aws sts get-caller-identity --profile lcdt
 ### Terraform Plan/Apply
 ```bash
 cd terraform
-terraform plan
-terraform apply
+export AWS_PROFILE=lcdt
+terraform plan -var-file=terraform.tfvars
+terraform apply -var-file=terraform.tfvars
 ```
 
 ### Update kubeconfig
@@ -152,7 +153,8 @@ curl http://localhost:8080/metrics
 ```bash
 kubectl port-forward svc/monitoring-grafana 3000:80 -n monitoring
 # Open http://localhost:3000
-# Default: admin / changeme-use-secret-in-production
+# Credentials stored in secret: grafana-admin-credentials
+# Get password: kubectl get secret grafana-admin-credentials -n monitoring -o jsonpath="{.data.admin-password}" | base64 -d
 ```
 
 ### Access Prometheus
@@ -163,8 +165,10 @@ kubectl port-forward svc/monitoring-kube-prometheus-prometheus 9090:9090 -n moni
 
 ### Check firing alerts
 ```bash
-kubectl port-forward svc/monitoring-kube-prometheus-alertmanager 9093:9093 -n monitoring
-# Open http://localhost:9093
+# Alertmanager is disabled for cost optimization
+# View alerts in Prometheus UI:
+kubectl port-forward svc/monitoring-kube-prometheus-prometheus 9090:9090 -n monitoring
+# Open http://localhost:9090/alerts
 ```
 
 ### Update monitoring config

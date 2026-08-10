@@ -79,3 +79,83 @@ resource "aws_iam_role_policy_attachment" "ssm_managed" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   role       = aws_iam_role.eks_node.name
 }
+
+################################################################################
+# GitHub Actions OIDC Provider
+################################################################################
+
+resource "aws_iam_openid_connect_provider" "github_actions" {
+  url             = "https://token.actions.githubusercontent.com"
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+
+  tags = merge(var.tags, {
+    Name = "github-actions-oidc"
+  })
+}
+
+################################################################################
+# GitHub Actions CI/CD IAM Role
+################################################################################
+
+data "aws_iam_policy_document" "github_actions_assume" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.github_actions.arn]
+    }
+
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:${var.github_repo}:*"]
+    }
+  }
+}
+
+resource "aws_iam_role" "github_actions" {
+  name               = "${var.cluster_name}-github-actions"
+  assume_role_policy = data.aws_iam_policy_document.github_actions_assume.json
+
+  tags = merge(var.tags, {
+    Name = "${var.cluster_name}-github-actions"
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_ecr" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
+  role       = aws_iam_role.github_actions.name
+}
+
+data "aws_iam_policy_document" "github_actions_eks" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "eks:DescribeCluster",
+      "eks:ListClusters",
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "github_actions_eks" {
+  name   = "${var.cluster_name}-github-actions-eks"
+  policy = data.aws_iam_policy_document.github_actions_eks.json
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "github_actions_eks" {
+  policy_arn = aws_iam_policy.github_actions_eks.arn
+  role       = aws_iam_role.github_actions.name
+}

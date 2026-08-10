@@ -12,10 +12,16 @@ COPY . .
 RUN go build -o hello-world .
 
 # Step 2: Create minimal runtime image
-FROM alpine:latest
+FROM alpine:3.20
+
+# Create non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Copy the binary from builder
 COPY --from=builder /app/hello-world /hello-world
+
+# Switch to non-root user
+USER appuser
 
 # Expose port
 EXPOSE 8080

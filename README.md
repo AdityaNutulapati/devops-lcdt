@@ -96,7 +96,7 @@ kubectl get pods -A
 
 ### Credentials
 
-**Grafana**: admin / changeme-use-secret-in-production  
+**Grafana**: Credentials stored in Kubernetes Secret `grafana-admin-credentials` (created separately)  
 **ArgoCD**: admin / `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
 
 ---
@@ -123,9 +123,9 @@ kubectl get pods -A
 
 ### Alerts
 
-- Custom alert rules in `monitoring/alerts/custom-alerts.yaml`
+- Custom PrometheusRule definitions in `monitoring/alerts/custom-alerts.yaml`
 - 12 alert rules covering application, deployment, and node health
-- Visible in Prometheus UI
+- Alerts visible in Prometheus UI (Alertmanager not deployed for cost optimization)
 
 ---
 
@@ -136,26 +136,24 @@ kubectl get pods -A
 Triggers on: Push to main, PRs
 
 **Steps:**
-1. Lint Go code
-2. Run tests
-3. Build Docker image
-4. Scan image with Trivy
-5. Push to ECR
-6. Lint Helm charts
-7. Validate Terraform
+1. Lint Go code and run tests with race detector
+2. Build Docker image
+3. Scan image with Trivy (fail on CRITICAL/HIGH)
+4. Push to ECR (commit SHA + latest tags)
+5. Lint Helm charts and validate templates
+6. Validate Terraform and check formatting
 
 ### CD Workflow (`.github/workflows/cd.yaml`)
 
 Triggers on: Push to main (after CI)
 
 **Steps:**
-1. Deploy infrastructure (Terraform)
-2. Configure kubectl
-3. Install ArgoCD
-4. Bootstrap monitoring stack
-5. Deploy applications
-6. Apply custom alerts
-7. Verify deployments
+1. Assume OIDC role via GitHub Actions federation
+2. Configure kubectl for EKS
+3. Trigger ArgoCD hard refresh
+4. Restart deployment to pull latest image
+5. Wait for rollout completion
+6. Print deployment status
 
 ---
 
@@ -211,8 +209,9 @@ devops-lcdt/
 
 ### High Availability
 
--  Multi-AZ deployment (2 availability zones)
+-  Multi-AZ deployment (2 AZs with topologySpreadConstraints)
 -  Multi-replica application (2-6 replicas with HPA)
+-  PodDisruptionBudget (minAvailable: 1)
 -  Load balancing across pods
 -  Health checks (liveness + readiness probes)
 
@@ -223,8 +222,11 @@ devops-lcdt/
 -  IAM roles with least privilege
 -  IRSA (IAM Roles for Service Accounts)
 -  Security groups for network isolation
--  Container image scanning (Trivy)
--  Non-root containers
+-  Container image scanning (Trivy in CI pipeline)
+-  Non-root containers (UID 65534, readOnlyRootFilesystem, drop ALL capabilities)
+-  NetworkPolicy restricting ingress/egress
+-  PodDisruptionBudget for voluntary disruption safety
+-  OIDC authentication for CI/CD (no static credentials)
 
 ### Observability
 
