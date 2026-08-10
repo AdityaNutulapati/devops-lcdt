@@ -219,11 +219,6 @@ This is a demo/learning environment with cost optimizations. Production deployme
 - **Why**: Simplifies connectivity for demo purposes
 - **Production Fix**: Restrict egress to specific ports (443 for HTTPS, 53 for DNS) and destinations
 
-### 4. **Alerting**
-- **Current**: Alertmanager disabled, no alert notifications
-- **Why**: Cost optimization and demo simplicity
-- **Production Fix**: Enable Alertmanager with receivers (Slack, PagerDuty, email)
-
 ---
 
 ##  Key Features

@@ -146,8 +146,3 @@ This is a demo/learning environment with intentional cost optimizations and simp
 - **Current State**: Both cluster and node security groups allow unrestricted egress
 - **Reason**: Simplifies connectivity for demo purposes; avoids debugging egress-related issues
 - **Production Recommendation**: Restrict egress to specific ports (443 for HTTPS, 53 for DNS) and known CIDR ranges
-
-### 4. **Alerting (Alertmanager Disabled)**
-- **Current State**: PrometheusRules defined but Alertmanager disabled; no alert receivers configured
-- **Reason**: Cost optimization and demo simplicity; alerts visible in Prometheus UI only
-- **Production Recommendation**: Enable Alertmanager with proper receivers (Slack, PagerDuty, email, webhooks)
