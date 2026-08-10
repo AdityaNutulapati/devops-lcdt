@@ -53,7 +53,8 @@
 - **NAT Gateway**: Single NAT GW in first public subnet provides outbound internet access for nodes
 - **Security Groups**: Least-privilege rules — cluster ↔ node communication only on required ports
 - **KMS Encryption**: Kubernetes secrets encrypted at rest using customer-managed KMS key with automatic rotation
-- **Cluster endpoint**: Private access enabled; public access restricted by CIDR allowlist (configured in terraform.tfvars)
+- **Cluster endpoint**: Private access enabled; **public access currently open (0.0.0.0/0) for GitHub Actions CI/CD compatibility** - production deployments should restrict to specific IP ranges or use VPC endpoints
+- **aws-auth ConfigMap**: GitHub Actions IAM role mapped with system:masters permissions for kubectl access from CI/CD
 - **IAM Roles**: Separate roles for cluster and nodes with minimum required AWS managed policies
 - **IRSA**: Pod-level IAM via OIDC — no static credentials mounted in pods
 
@@ -67,9 +68,12 @@
 - **Resource limits**: CPU and memory limits prevent resource exhaustion
 
 ### CI/CD Security
-- **OIDC authentication**: GitHub Actions uses OIDC federation via `aws_iam_openid_connect_provider` — no long-lived AWS credentials
+- **OIDC authentication**: GitHub Actions uses OIDC federation via `aws_iam_openid_connect_provider` — no long-lived AWS credentials stored
+- **OIDC trust policy**: Uses `StringLike` with wildcards to match GitHub's token format: `repo:AdityaNutulapati*/devops-lcdt*:ref:refs/heads/main`
+- **IAM role mapping**: GitHub Actions role added to EKS `aws-auth` ConfigMap for kubectl authentication
 - **Trivy scanning**: Container images scanned for CRITICAL and HIGH vulnerabilities; build fails on findings (`exit-code: 1`)
-- **Scoped trust**: OIDC trust policy restricted to `repo:AdityaNutulapati/devops-lcdt:*` — only this repo can assume the CI/CD role
+- **Go 1.26**: Latest Go version with all security patches, no known vulnerabilities
+- **Scoped permissions**: CI/CD role has minimal permissions (ECR push, EKS describe)
 
 ## Monitoring Stack
 

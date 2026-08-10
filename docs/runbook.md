@@ -60,9 +60,11 @@ aws eks update-nodegroup-config \
 
 ### Access ArgoCD UI
 ```bash
-kubectl port-forward svc/argocd-server -n argocd 8080:443
-# Open https://localhost:8080
-# Get password: kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+kubectl port-forward svc/argocd-server -n argocd 8081:80
+# Open http://localhost:8081
+# Username: admin
+# Get password:
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d
 ```
 
 ### Check application sync status
@@ -139,7 +141,7 @@ kubectl logs hello-world-hello-world-<hash> -f
 
 ### Port-forward for testing
 ```bash
-kubectl port-forward svc/hello-world-hello-world 8080:80
+kubectl port-forward svc/hello-world 8080:80 -n default
 curl http://localhost:8080
 curl http://localhost:8080/health
 curl http://localhost:8080/metrics
@@ -153,8 +155,10 @@ curl http://localhost:8080/metrics
 ```bash
 kubectl port-forward svc/monitoring-grafana 3000:80 -n monitoring
 # Open http://localhost:3000
-# Credentials stored in secret: grafana-admin-credentials
-# Get password: kubectl get secret grafana-admin-credentials -n monitoring -o jsonpath="{.data.admin-password}" | base64 -d
+# Username: admin
+# Get password:
+kubectl get secret grafana-admin-credentials -n monitoring -o jsonpath='{.data.admin-password}' | base64 -d
+# Default: admin / admin
 ```
 
 ### Access Prometheus
@@ -214,8 +218,28 @@ kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup kubernete
 
 ### Network connectivity
 ```bash
-kubectl run -it --rm debug --image=busybox --restart=Never -- wget -qO- hello-world-hello-world:80
+kubectl run -it --rm debug --image=busybox --restart=Never -- wget -qO- hello-world:80
 ```
+
+### CI/CD OIDC Issues
+```bash
+# Check if GitHub Actions role is in aws-auth ConfigMap
+kubectl get configmap aws-auth -n kube-system -o yaml
+
+# Verify IAM role trust policy
+aws iam get-role --role-name aditya-eks-cluster-github-actions --profile lcdt
+
+# Check CloudTrail for AssumeRoleWithWebIdentity events
+aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity --profile lcdt --region ap-south-2
+```
+
+### For detailed troubleshooting
+See `docs/TROUBLESHOOTING.md` for common issues and solutions including:
+- OIDC authentication failures
+- Trivy vulnerability scan failures
+- EKS API endpoint access issues
+- kubectl authentication problems
+- ArgoCD sync issues
 
 ---
 

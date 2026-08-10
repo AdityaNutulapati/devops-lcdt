@@ -5,7 +5,7 @@ Production-ready Kubernetes deployment on AWS EKS with complete Infrastructure a
 ##  Architecture
 
 **Cloud**: AWS (ap-south-2 - Hyderabad)  
-**Cluster**: EKS 1.36 with 4 nodes across 2 Availability Zones  
+**Cluster**: EKS 1.36 with 3 nodes across 2 Availability Zones  
 **Network**: Custom VPC (10.20.0.0/16) with public/private subnets  
 **Deployment**: GitOps using ArgoCD  
 **Monitoring**: Prometheus + Grafana + Loki
@@ -61,7 +61,7 @@ kubectl get pods -A
 - **Subnets**: 2 public + 2 private
 - **NAT Gateway**: For private subnet internet access
 - **EKS Cluster**: Kubernetes 1.36
-- **Node Groups**: 4 t3.micro instances
+- **Node Groups**: 3 t3.micro instances (autoscaling 3-5)
 - **IAM Roles**: Cluster role, node role, IRSA for apps
 - **Security Groups**: Cluster and node security
 
@@ -78,26 +78,28 @@ kubectl get pods -A
 
 ##  Access Services
 
-### Port Forward All Services
-
-```bash
-./scripts/port-forward-all.sh
-```
-
-### Individual Services
+### Port Forward Services
 
 | Service | Command | URL |
 |---------|---------|-----|
+| **ArgoCD** | `kubectl port-forward -n argocd svc/argocd-server 8081:80` | http://localhost:8081 |
+| **Hello-World** | `kubectl port-forward -n default svc/hello-world 8080:80` | http://localhost:8080 |
 | **Grafana** | `kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80` | http://localhost:3000 |
 | **Prometheus** | `kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-prometheus 9090:9090` | http://localhost:9090 |
-| **ArgoCD** | `kubectl port-forward -n argocd svc/argocd-server 8080:80` | http://localhost:8080 |
-| **Hello-World** | `kubectl port-forward -n default svc/hello-world 8081:80` | http://localhost:8081 |
 | **Loki** | `kubectl port-forward -n monitoring svc/loki 3100:3100` | http://localhost:3100 |
 
 ### Credentials
 
-**Grafana**: Credentials stored in Kubernetes Secret `grafana-admin-credentials` (created separately)  
-**ArgoCD**: admin / `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
+**Grafana**:
+```bash
+kubectl get secret grafana-admin-credentials -n monitoring -o jsonpath='{.data.admin-password}' | base64 -d
+# Default: admin / admin
+```
+
+**ArgoCD**:
+```bash
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d
+```
 
 ---
 
@@ -125,7 +127,8 @@ kubectl get pods -A
 
 - Custom PrometheusRule definitions in `monitoring/alerts/custom-alerts.yaml`
 - 12 alert rules covering application, deployment, and node health
-- Alerts visible in Prometheus UI (Alertmanager not deployed for cost optimization)
+- **Alertmanager disabled** for cost optimization - alerts visible in Prometheus UI only
+- **Note**: No alert notifications configured (no receivers) - alerts fire but aren't sent anywhere
 
 ---
 
@@ -137,23 +140,24 @@ Triggers on: Push to main, PRs
 
 **Steps:**
 1. Lint Go code and run tests with race detector
-2. Build Docker image
-3. Scan image with Trivy (fail on CRITICAL/HIGH)
-4. Push to ECR (commit SHA + latest tags)
-5. Lint Helm charts and validate templates
-6. Validate Terraform and check formatting
+2. **Authenticate with AWS using OIDC** (no static credentials)
+3. Build Docker image with Go 1.26
+4. Scan image with Trivy (fail on CRITICAL/HIGH vulnerabilities)
+5. Push to ECR (commit SHA + latest tags)
+6. Lint Helm charts and validate templates
+7. Validate Terraform and check formatting
 
 ### CD Workflow (`.github/workflows/cd.yaml`)
 
 Triggers on: Push to main (after CI)
 
 **Steps:**
-1. Assume OIDC role via GitHub Actions federation
-2. Configure kubectl for EKS
-3. Trigger ArgoCD hard refresh
-4. Restart deployment to pull latest image
-5. Wait for rollout completion
-6. Print deployment status
+1. **Assume AWS IAM role via OIDC** (GitHub Actions federation)
+2. Configure kubectl for EKS cluster access
+3. Trigger ArgoCD hard refresh for all applications
+4. Restart hello-world deployment to pull latest image
+5. Wait for rollout completion (180s timeout)
+6. Verify monitoring stack health
 
 ---
 
@@ -195,12 +199,10 @@ devops-lcdt/
 ├── .github/workflows/      # CI/CD pipelines
 │   ├── ci.yaml
 │   └── cd.yaml
-├── scripts/                # Helper scripts
-│   ├── port-forward-all.sh
-│   └── PORT-FORWARD-GUIDE.md
 └── docs/                   # Documentation
     ├── architecture.md
-    └── runbook.md
+    ├── runbook.md
+    └── TROUBLESHOOTING.md
 ```
 
 ---
@@ -226,7 +228,9 @@ devops-lcdt/
 -  Non-root containers (UID 65534, readOnlyRootFilesystem, drop ALL capabilities)
 -  NetworkPolicy restricting ingress/egress
 -  PodDisruptionBudget for voluntary disruption safety
--  OIDC authentication for CI/CD (no static credentials)
+-  **OIDC authentication** for CI/CD (GitHub Actions federation, no static AWS credentials)
+-  **aws-auth ConfigMap** properly configured for IAM role-based kubectl access
+-  **EKS API endpoint**: Currently open (0.0.0.0/0) for GitHub Actions CI/CD - production should use IP restrictions or VPC endpoints
 
 ### Observability
 
@@ -252,7 +256,7 @@ devops-lcdt/
 | Resource | Cost |
 |----------|------|
 | EKS Cluster | $72/month |
-| 4× t3.micro nodes | ~$12/month |
+| 3× t3.micro nodes | ~$9/month |
 | NAT Gateway | ~$32/month |
 | EBS Volumes (120 GB) | ~$10/month |
 | S3 + DynamoDB | ~$0 (free tier) |
@@ -288,7 +292,7 @@ aws dynamodb delete-table --table-name lcdt-terraform-lock --region ap-south-2 -
 
 - **Architecture**: See `docs/architecture.md` for detailed system design
 - **Runbook**: See `docs/runbook.md` for operational procedures
-- 
+- **Troubleshooting**: See `docs/TROUBLESHOOTING.md` for common issues and solutions
 ---
 
 ##  Assignment Requirements
