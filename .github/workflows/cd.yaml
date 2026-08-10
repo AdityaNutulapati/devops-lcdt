@@ -51,6 +51,11 @@ jobs:
           aws eks update-kubeconfig \
             --region ${{ env.AWS_REGION }} \
             --name ${{ env.CLUSTER_NAME }}
+          
+          echo "=== Verifying kubectl access ==="
+          kubectl version --client
+          kubectl cluster-info
+          kubectl auth can-i get pods --all-namespaces
 
       - name: Sync all ArgoCD applications
         run: |
