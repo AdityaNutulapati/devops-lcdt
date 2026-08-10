@@ -28,11 +28,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Debug - Check AWS_ROLE_ARN secret
+        run: |
+          if [ -z "${{ secrets.AWS_ROLE_ARN }}" ]; then
+            echo "ERROR: AWS_ROLE_ARN secret is not set!"
+            exit 1
+          fi
+          echo "AWS_ROLE_ARN is set (length: ${#AWS_ROLE_ARN})"
+        env:
+          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-CD-${{ github.run_id }}
+          role-duration-seconds: 3600
 
       - name: Update kubeconfig
         run: |
