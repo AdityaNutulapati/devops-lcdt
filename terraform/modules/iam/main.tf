@@ -118,9 +118,9 @@ data "aws_iam_policy_document" "github_actions_assume" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = [
-        "repo:${var.github_repo}:ref:refs/heads/main",
-        "repo:${var.github_repo}:pull_request"
+      values = [
+        "repo:AdityaNutulapati*/devops-lcdt*:ref:refs/heads/main",
+        "repo:AdityaNutulapati*/devops-lcdt*:pull_request"
       ]
     }
   }
