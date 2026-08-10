@@ -18,7 +18,12 @@ cluster_version     = "1.36"
 node_instance_types = ["t3.micro"]
 node_desired_size   = 3
 node_min_size       = 3
-node_max_size       = 3
+node_max_size       = 5
 
-# Restrict to your IP range (run: curl -s ifconfig.me)
-cluster_endpoint_public_access_cidrs = ["<YOUR_IP>/32"]
+# EKS API Endpoint Access
+# For production: Use 0.0.0.0/0 to allow GitHub Actions access
+# For development: Restrict to your IP (run: curl -s ifconfig.me)
+cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
+
+# GitHub Repository for OIDC
+github_repo = "AdityaNutulapati/devops-lcdt"
